@@ -11,7 +11,8 @@ from sklearn import preprocessing
 
 load = pd.read_csv("psych texas star no_nan.csv")
 #data = load.replace(to_replace = np.nan, value = 0)  
-X_og = data.drop('Matched', 'Step 1', 'Step 2 CK', 'AOA', 'Cumulative Quartile', '# Ho0red Clerkships', 'Ho0rs-A This Specialty', 'GHHS', 'Other Degrees', 'Research Year', '# Research Experiences', '# Abstracts, Pres, Posters', '# Peer-Rev Publications', '# Volunteer Experiences', '# Leadership Positions', 'Required to Remediate', 'Pass Attempt - Step 1', 'Pass Attempt - Step 2 CK', 'Pass Attempt - Step 2 CS', '# Programs Applied', '# Interviews Attended', 'Home State', 'Release - Step 2 CK', 'Release - Step 2 CS', 'Majority of Interview Offers', 'Majority of Interviews Attended',  axis=1)
+
+X_og = data.drop(['Matched', 'Step 2 CK', 'AOA', 'Cumulative Quartile', '# Ho0red Clerkships', 'Ho0rs-A This Specialty', 'GHHS', 'Other Degrees', 'Research Year', '# Research Experiences', '# Abstracts, Pres, Posters', '# Peer-Rev Publications', '# Volunteer Experiences', '# Leadership Positions', 'Required to Remediate', 'Pass Attempt - Step 1', 'Pass Attempt - Step 2 CK', 'Pass Attempt - Step 2 CS', '# Programs Applied', '# Interviews Attended', 'Home State', 'Release - Step 2 CK', 'Release - Step 2 CS', 'Majority of Interview Offers', 'Majority of Interviews Attended'],  axis=1)
 
 X_og = X_og.astype('category')
 y = data['Matched']
@@ -46,3 +47,6 @@ for train_index, test_index in kf.split(X):
       
       
 print(np.asarray(y_preddata))
+
+
+#X_og = data.drop('Matched', 'Step 1', 'Step 2 CK', 'AOA', 'Cumulative Quartile', '# Ho0red Clerkships', 'Ho0rs-A This Specialty', 'GHHS', 'Other Degrees', 'Research Year', '# Research Experiences', '# Abstracts, Pres, Posters', '# Peer-Rev Publications', '# Volunteer Experiences', '# Leadership Positions', 'Required to Remediate', 'Pass Attempt - Step 1', 'Pass Attempt - Step 2 CK', 'Pass Attempt - Step 2 CS', '# Programs Applied', '# Interviews Attended', 'Home State', 'Release - Step 2 CK', 'Release - Step 2 CS', 'Majority of Interview Offers', 'Majority of Interviews Attended',  axis=1)
