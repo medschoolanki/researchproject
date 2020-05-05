@@ -52,6 +52,7 @@ y_p = np.stack(y_preddata,axis=1)
 y_p = np.reshape(y_p,(622,))
 
 
+
 def perf_measure(y_actual, y_hat):
     TP = 0
     FP = 0
@@ -66,11 +67,12 @@ def perf_measure(y_actual, y_hat):
             TN += 1
         if y_hat[i]==0 and y_actual[i]!=y_hat[i]:
             FN += 1
-    print("TP:", TP,"FP:", FP,"TN:", TN,"FN:", FN)
+    print("TP:",TP,"FP:",FP,"TN:",TN,"FN:",FN)
     Sensitivity = TP/(TP+FN)
     Specificity = TN/(TN+FP)
     PPV = TP/(TP+FP)
     NPV = TN/(FN+TN)
+    print("Accuracy:",metrics.accuracy_score(np.array(y_p),np.array(y)))
     print("Sensitivity:", Sensitivity, "Specificity:", Specificity, "PPV:", PPV, "NPV:", NPV)
     
 
@@ -79,7 +81,7 @@ perf_measure(y,y_p)
 
 #FEATURE IMPORTANCE
 features_names = ['Step1','Step2CK','AOA','CumulativeQuartile','#Ho0redClerkships','Ho0rs-AThisSpecialty','GHHS','ResearchYear','#ResearchExperiences','#Abstracts,Pres,Posters','#Peer-RevPublications','#VolunteerExperiences','#LeadershipPositions','RequiredtoRemediate','PassAttempt-Step1','PassAttempt-Step2CK','PassAttempt-Step2CS','#ProgramsApplied','#InterviewsAttended']
-pd.Series(abs(svm.coef_[0]), index=features_names).nlargest(20).plot(kind='barh')
+pd.Series(abs(svm.coef_[0]), index=features_names).nlargest(19).plot(kind='barh')
 plt.show()
 
 #X_og = data.drop('Matched', 'Step 1', 'Step 2 CK', 'AOA', 'Cumulative Quartile', '# Ho0red Clerkships', 'Ho0rs-A This Specialty', 'GHHS', 'Other Degrees', 'Research Year', '# Research Experiences', '# Abstracts, Pres, Posters', '# Peer-Rev Publications', '# Volunteer Experiences', '# Leadership Positions', 'Required to Remediate', 'Pass Attempt - Step 1', 'Pass Attempt - Step 2 CK', 'Pass Attempt - Step 2 CS', '# Programs Applied', '# Interviews Attended', 'Home State', 'Release - Step 2 CK', 'Release - Step 2 CS', 'Majority of Interview Offers', 'Majority of Interviews Attended',  axis=1)
