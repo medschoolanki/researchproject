@@ -11,71 +11,74 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_curve, precision_recall_curve, auc, make_scorer, recall_score, accuracy_score, precision_score, confusion_matrix, f1_score
+from sklearn.model_selection import validation_curve
 
-
-
-data = pd.read_csv("RD+Controls_pairwise_corrs.csv")
-X = data.drop('RD', axis=1).values
-y = data['RD'].values
-kf = KFold(n_splits=147)
-kf.get_n_splits(X)
-print(kf)
-bsvm = SVC(kernel='linear', class_weight='balanced')
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+#### CODE ASSUMES YOU HAVE ALREADY DEFINED X and y AFTER IMPORTING YOUR DATASET #####
+X_train, X_test, y_train, y_test = train_test_split(reducedX, y, test_size = 0.2, random_state = 0)
 
 print("Training set size: %.0f" % len(X_train))
 print("Testing set size: %.0f" % len(X_test))
 
+############# RANDOM FOREST FINE TUNING ###############
+clf = RandomForestClassifier(class_weight='balanced')
+n_estimators = [5, 10, 15, 20, 22, 25, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100]
+max_depth = [2, 5, 8, 15, 25, 30]
+min_samples_split = [2, 5, 10, 15, 100]
+min_samples_leaf = [1, 2, 5, 10] 
+scorers = {
+	'precision_score': make_scorer(precision_score),
+	'recall_score': make_scorer(recall_score),
+	'accuracy_score': make_scorer(accuracy_score),
+	'f1_score': make_scorer(f1_score)
+}
 
-#gridsearch
-#define scores
-#def scores(model):
-#	model.fit(xtrain, ytrain.ravel())
-#	y_pred = model.predict(xtest)
-#   	print("Accuracy score: %.3f" % metrics.accuracy_score(ytest, y_pred))
-#	print("Recall: %.3f" % metrics.recall_score(ytest, y_pred))
-#	print("Precision: %.3f" % metrics.precision_score(ytest, y_pred))
-#	print("F1: %.3f" % metrics.f1_score(ytest, y_pred))
-#	proba = model.predict_proba(xtest)
-#	print("Log loss: %.3f" % metrics.log_loss(ytest, proba))
-#	pos_prob = proba[:, 1]
-#	print("Area under ROC curve: %.3f" % metrics.roc_auc_score(ytest, pos_prob))
-#	cv = cross_val_score(model, xtest, ytest.ravel(), cv = 3, scoring = 'accuracy')
-#	print("Accuracy (cross validation score): %0.3f (+/- %0.3f)" % (cv.mean(), cv.std() * 2))
-#	return y_pred
+###### VALIDATION CURVE FOR n_estimators ########
+param_range = [10, 15, 20, 22, 25, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 150, 200, 300, 500, 1000, 1200]
+train_scoreNum, test_scoreNum = validation_curve(
+                                RandomForestClassifier(),
+                                X = X_train, y = y_train, 
+                                param_name = 'n_estimators', 
+                                param_range = param_range, cv = 5, scoring='balanced_accuracy')
+# Calculate mean and standard deviation for training set scores
+train_mean = np.mean(train_scoreNum, axis=1)
+train_std = np.std(train_scoreNum, axis=1)
 
-#cv = StratifiedKFold(n_splits = 3, random_state = 0)
-#define gridsearch
-#def grid_search(model, grid):
-#	clf = GridSearchCV(model, grid, cv = cv, n_jobs = -1, verbose = 2, iid = False)
-#	scores(clf)    
-#	print(clf.best_params_)
+# Calculate mean and standard deviation for test set scores
+test_mean = np.mean(test_scoreNum, axis=1)
+test_std = np.std(test_scoreNum, axis=1)
+
+# Plot mean accuracy scores for training and test sets
+plt.plot(param_range, train_mean, label="Training score", color="black")
+plt.plot(param_range, test_mean, label="Cross-validation score", color="red")
+
+# Plot accurancy bands for training and test sets
+plt.fill_between(param_range, train_mean - train_std, train_mean + train_std, color="gray")
+plt.fill_between(param_range, test_mean - test_std, test_mean + test_std, color="gainsboro")
+
+# Create plot
+plt.title("Validation Curve With Random Forest")
+plt.xlabel("Number Of Trees")
+plt.ylabel("Balanced Accuracy")
+plt.tight_layout()
+plt.legend(loc="best")
+plt.show()
+
+hyperF = dict(n_estimators = n_estimators, max_depth = max_depth,  
+              min_samples_split = min_samples_split, 
+             min_samples_leaf = min_samples_leaf)
+
+gridF = GridSearchCV(clf, hyperF, cv = 3, verbose = 1, 
+                      n_jobs = -1, scoring='recall_weighted')
+bestF = gridF.fit(X_train, y_train)
+bestF.best_params_
+bestF.best_estimator_
 
 
-#dummy svc variable for parameter search
-#y_svc = scores(svc)
-
+#SVC recall finetuning
 svc = SVC(kernel = 'rbf', gamma = 1e-2, C = 10, probability = True)
-
-#values for above dummy svc
-#gamma = [x for x in np.logspace(-4, 1, num = 6, endpoint=10)]
-#C = [x for x in np.logspace(-2, 2, num = 5, endpoint=100)]
-#kernel = ['rbf', 'sigmoid', 'linear']
-#probability = [True]
-
-#grid = {'gamma': gamma,
-#        'C': C,
-#        'kernel': kernel,
-#        'probability': probability}
-
-#grid_search(svc, grid)
-
-
-#recall finetuning
 param_grid = {'C': [0.000001, 0.0001, 0.001, 0.01, .1, 1, 10, 100, 1000],  
               'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
-              'kernel': ['rbf','linear','poly','sigmoid']}
+              'kernel': ['linear']}
 scorers = {
 	'precision_score': make_scorer(precision_score),
 	'recall_score': make_scorer(recall_score),
@@ -84,7 +87,7 @@ scorers = {
 }
 
 
-def grid_search_wrapper(refit_score='f1_score'):
+def grid_search_wrapper(refit_score='recall_score'):
 	skf = StratifiedKFold(n_splits=10)
 	grid_search = GridSearchCV(svc, param_grid, scoring=scorers, refit=refit_score, cv=skf, return_train_score=True, n_jobs=-1)
 	grid_search.fit(X_train, y_train)
