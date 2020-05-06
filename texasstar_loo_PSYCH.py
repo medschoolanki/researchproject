@@ -31,7 +31,11 @@ loo.get_n_splits(X)
 print(loo)
 
 
-bsvm = SVC(kernel='linear', class_weight='balanced')
+#bsvm = SVC(kernel='linear', class_weight='balanced') #DEFAULT HYPERPARAMETERS, BELOW IS GRID SEARCHED PARAMETERS
+bsvm = SVC(C=1e-06, cache_size=200, class_weight=None, coef0=0.0,
+    decision_function_shape='ovr', degree=3, gamma=1, kernel='linear',
+    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
 y_preddata=[]
 
 for train_index, test_index in kf.split(X):
@@ -47,7 +51,8 @@ for train_index, test_index in kf.split(X):
      print(classification_report(y_test, y_pred))
      confusion_matrix(y_test, model.predict(X_test))
       
-      
+
+
 y_p = np.stack(y_preddata,axis=1)
 y_p = np.reshape(y_p,(622,))
 
